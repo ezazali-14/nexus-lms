@@ -52,6 +52,7 @@ import {
   ThumbsUp,
   Flag,
   Download,
+  FileText,
   AlertTriangle
 } from 'lucide-react';
 
@@ -307,19 +308,17 @@ export default function App() {
   });
 
   // Login View States
-  const [loginRole, setLoginRole] = useState('student'); // 'student' | 'faculty'
-  const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
+  const [loginRole, setLoginRole] = useState('student');
+  const [authMode, setAuthMode] = useState('login');
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '', department: 'Computer Science & Engineering' });
 
-  // Navigation Tabs (Strictly Separated)
-  // Student views: 'catalog' | 'player' | 'arena' | 'matrix' | 'forum' | 'about'
-  // Faculty views: 'faculty_dashboard' | 'faculty_courses' | 'faculty_grading' | 'about'
+  // Navigation Tabs
   const [activeTab, setActiveTab] = useState('catalog');
 
   // Student Classroom States
   const [selectedCourseId, setSelectedCourseId] = useState('c1');
   const [activeLessonId, setActiveLessonId] = useState('l1');
-  const [activeConsoleTab, setActiveConsoleTab] = useState('editor'); // 'editor' | 'notes' | 'discussion' | 'quiz'
+  const [activeConsoleTab, setActiveConsoleTab] = useState('editor');
 
   // Courses & Data State
   const [courses, setCourses] = useState(() => {
@@ -337,7 +336,7 @@ export default function App() {
     return saved ? JSON.parse(saved) : ['c3'];
   });
 
-  // Faculty Pending Lab Submissions (Grading Module)
+  // Faculty Pending Lab Submissions
   const [submissions, setSubmissions] = useState([
     { id: 'sub_1', studentName: 'Rithwik Dokku', course: 'Next.js 14 Production Patterns', task: 'Redis Distributed Lock Implementation', submittedTime: '2 hours ago', status: 'Pending Review', score: null },
     { id: 'sub_2', studentName: 'Priya Sharma', course: 'Deep Neural Architectures', task: 'Custom PyTorch Attention Kernel', submittedTime: '5 hours ago', status: 'Graded', score: '98/100' }
@@ -363,7 +362,7 @@ export default function App() {
     };
   });
 
-  // Classroom Discussion comments (separate from the forum tab)
+  // Classroom Discussion comments
   const [comments, setComments] = useState([
     { id: 1, author: 'Rithwik D.', handle: '@rithwik_core', time: '2h ago', text: 'Does edge caching work with dynamic JWT cookies?', upvotes: 12 },
     { id: 2, author: 'Pooja R.', handle: '@pooja_ai', time: '5h ago', text: 'The token architecture explanation in Module 1 is crystal clear!', upvotes: 27 }
@@ -373,8 +372,6 @@ export default function App() {
   // Modals
   const [showCertificate, setShowCertificate] = useState(false);
   const [checkoutCourse, setCheckoutCourse] = useState(null);
-  const [promoCode, setPromoCode] = useState('');
-  const [discountPercent, setDiscountPercent] = useState(0);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [showCreateCourseModal, setShowCreateCourseModal] = useState(false);
 
@@ -397,10 +394,6 @@ export default function App() {
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
 
-  // ==========================================
-  // STATE DEFINITIONS FOR THE UPGRADE FEATURES
-  // ==========================================
-
   // Faculty Revenue Tracking
   const [revenueINR, setRevenueINR] = useState(() => {
     const saved = localStorage.getItem('nexus_faculty_revenue');
@@ -421,10 +414,10 @@ export default function App() {
   const [testStarted, setTestStarted] = useState(false);
   const [testSubmitted, setTestSubmitted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState({}); // { [qIdx]: optIdx }
-  const [flaggedQuestions, setFlaggedQuestions] = useState({}); // { [qIdx]: bool }
-  const [visitedQuestions, setVisitedQuestions] = useState({}); // { [qIdx]: bool }
-  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [flaggedQuestions, setFlaggedQuestions] = useState({});
+  const [visitedQuestions, setVisitedQuestions] = useState({});
+  const [timeLeft, setTimeLeft] = useState(600);
 
   // 2. Doubts & Community Forum States
   const [doubts, setDoubts] = useState(() => {
@@ -456,9 +449,7 @@ export default function App() {
   const [questionCategory, setQuestionCategory] = useState('React');
   const [questionExplanation, setQuestionExplanation] = useState('');
 
-  // ==========================================
-  // PERSISTENCE EFFECT WORKERS
-  // ==========================================
+  // Persistence Effects
   useEffect(() => {
     if (currentUser) localStorage.setItem('nexus_role_user', JSON.stringify(currentUser));
     else localStorage.removeItem('nexus_role_user');
@@ -474,7 +465,6 @@ export default function App() {
   useEffect(() => { localStorage.setItem('nexus_doubts', JSON.stringify(doubts)); }, [doubts]);
   useEffect(() => { localStorage.setItem('nexus_checklist', JSON.stringify(checklist)); }, [checklist]);
 
-  // Clean tabs upon user switching to prevent screen mismatch errors
   useEffect(() => {
     if (currentUser) {
       if (currentUser.role === 'faculty') {
@@ -489,9 +479,7 @@ export default function App() {
     }
   }, [currentUser]);
 
-  // ==========================================
-  // ASSESSMENT TIMER WORKER
-  // ==========================================
+  // Assessment Timer
   useEffect(() => {
     if (!testStarted || testSubmitted) return;
     if (timeLeft <= 0) {
@@ -510,14 +498,12 @@ export default function App() {
     return () => clearInterval(timer);
   }, [testStarted, testSubmitted, timeLeft]);
 
-  // Auto-submit checker if timeLeft changes to zero
   useEffect(() => {
     if (testStarted && !testSubmitted && timeLeft === 0) {
       handleTestSubmit(true);
     }
   }, [timeLeft, testStarted, testSubmitted]);
 
-  // Memoized Mappings
   const currentCourse = useMemo(() => {
     return courses.find(c => c.id === selectedCourseId) || courses[0];
   }, [courses, selectedCourseId]);
@@ -535,7 +521,6 @@ export default function App() {
     };
   }, [currentCourse, activeLessonId]);
 
-  // Reset sandbox snippet when changing lessons
   useEffect(() => {
     setCodeSnippet(currentLesson.starterCode || '// Interactive Sandbox Ready\nconsole.log("Ready");');
     setTerminalOutput('');
@@ -567,9 +552,7 @@ export default function App() {
     }));
   };
 
-  // ==========================================
-  // ACTION HANDLERS
-  // ==========================================
+  // Auth Handlers
   const handleQuickDemoLogin = (role) => {
     if (role === 'student') {
       const studentUser = {
@@ -703,7 +686,6 @@ export default function App() {
     setSubmissions(prev => prev.map(s => s.id === subId ? { ...s, status: 'Graded', score: scoreAwarded } : s));
   };
 
-  // Course Catalog Filter
   const filteredCourses = useMemo(() => {
     return courses.filter(c => {
       const matchesSearch = c.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -714,9 +696,7 @@ export default function App() {
     });
   }, [courses, search, selectedCat]);
 
-  // ==========================================
-  // MOCK ASSESSMENT HANDLERS
-  // ==========================================
+  // Mock Assessment Handlers
   const handleStartTest = () => {
     setTestStarted(true);
     setTestSubmitted(false);
@@ -724,12 +704,11 @@ export default function App() {
     setSelectedAnswers({});
     setFlaggedQuestions({});
     setVisitedQuestions({ 0: true });
-    setTimeLeft(600); // Reset to 10 Minutes
+    setTimeLeft(600);
   };
 
   const handleTestSubmit = (isTimeout = false) => {
     setTestSubmitted(true);
-    // Grade the results
     let correctCount = 0;
     testQuestions.forEach((q, idx) => {
       if (selectedAnswers[idx] === q.correct) {
@@ -780,9 +759,7 @@ export default function App() {
     }));
   };
 
-  // ==========================================
-  // COMMUNITY FORUM HANDLERS
-  // ==========================================
+  // Community Forum Handlers
   const handleAddForumPost = (e) => {
     e.preventDefault();
     if (!newQueryTitle.trim() || !newQueryContent.trim()) {
@@ -847,9 +824,7 @@ export default function App() {
     });
   }, [doubts, selectedForumCategory, forumSearch]);
 
-  // ==========================================
-  // DAILY CHECKLIST HANDLERS
-  // ==========================================
+  // Daily Checklist Handlers
   const handleToggleChecklist = (id) => {
     setChecklist(prev => prev.map(item => {
       if (item.id === id) {
@@ -881,9 +856,7 @@ export default function App() {
     return Math.round((completed / checklist.length) * 100);
   }, [checklist]);
 
-  // ==========================================
-  // DOWNLOAD UTILITIES
-  // ==========================================
+  // Download Utilities
   const handleDownloadCheatsheet = (type) => {
     let filename = '';
     let content = '';
@@ -991,9 +964,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
     URL.revokeObjectURL(url);
   };
 
-  // ==========================================
-  // FACULTY QUESTION BUILDER HANDLERS
-  // ==========================================
+  // Faculty Question Builder Handlers
   const handleAddQuestion = (e) => {
     e.preventDefault();
     if (!questionText.trim() || !optA.trim() || !optB.trim() || !optC.trim() || !optD.trim() || !questionExplanation.trim()) {
@@ -1009,7 +980,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
       explanation: questionExplanation
     };
     setTestQuestions(prev => [newQuestion, ...prev]);
-    // Reset state inputs
     setQuestionText('');
     setOptA('');
     setOptB('');
@@ -1030,9 +1000,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
     }
   };
 
-  // ==========================================
-  // FACULTY ANALYTICS METRICS COMPUTATION
-  // ==========================================
+  // Faculty Analytics Metrics Computation
   const testMetrics = useMemo(() => {
     if (testHistory.length === 0) return { avgScore: 0, passRate: 0, totalTests: 0, passedCount: 0, failedCount: 0 };
     const totalTests = testHistory.length;
@@ -1063,7 +1031,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
             <p className="text-xs text-zinc-400">Select your role to access your dedicated workspace.</p>
           </div>
 
-          {/* Role Partition Switcher */}
           <div className="grid grid-cols-2 gap-2 p-1 bg-[#07090C] border border-[#1E2638] rounded-xl">
             <button
               onClick={() => setLoginRole('student')}
@@ -1083,7 +1050,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
             </button>
           </div>
 
-          {/* 1-Click Fast Evaluator Login */}
           <div className="p-3 bg-[#07090C] border border-[#1E2638] rounded-xl space-y-2">
             <span className="text-[10px] font-mono uppercase text-zinc-400 block font-semibold">1-Click Fast Demo Login</span>
             <div className="grid grid-cols-2 gap-2">
@@ -1113,7 +1079,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
             <div className="h-px flex-1 bg-[#1E2638]" />
           </div>
 
-          {/* Credentials Form */}
           <form onSubmit={handleCustomAuth} className="space-y-3 text-xs">
             {authMode === 'signup' && (
               <div>
@@ -1208,7 +1173,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
               {/* STRICTLY SEPARATED NAVIGATION TABS */}
               <nav className="flex flex-wrap items-center gap-1.5 pl-0 md:pl-3 border-t md:border-t-0 md:border-l border-[#1E2638] pt-2 md:pt-0 w-full md:w-auto justify-start">
                 {currentUser.role === 'faculty' ? (
-                  // FACULTY NAVIGATION TABS ONLY
                   <>
                     <button
                       onClick={() => setActiveTab('faculty_dashboard')}
@@ -1250,7 +1214,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                     </button>
                   </>
                 ) : (
-                  // STUDENT NAVIGATION TABS ONLY
                   <>
                     <button
                       onClick={() => setActiveTab('catalog')}
@@ -1286,7 +1249,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                         }`}
                     >
                       <span className="flex items-center gap-1.5">
-                        <Award className="w-3.5 h-3.5 text-rose-450 animate-pulse text-rose-400" />
+                        <Award className="w-3.5 h-3.5 animate-pulse text-rose-400" />
                         Mock Test Arena
                       </span>
                     </button>
@@ -1300,7 +1263,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                     >
                       <span className="flex items-center gap-1.5">
                         <CalendarIcon className="w-3.5 h-3.5 text-amber-400" />
-                        Study Matrix
+                        Study Matrix & Docs
                       </span>
                     </button>
 
@@ -1368,10 +1331,9 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
           {/* ========================================================================= */}
-          {/* SECTION A: FACULTY VIEWS (ONLY FOR FACULTY ROLE)                         */}
+          {/* SECTION A: FACULTY VIEWS (ONLY FOR FACULTY ROLE)                          */}
           {/* ========================================================================= */}
 
-          {/* FACULTY VIEW 1: EXECUTIVE DASHBOARD */}
           {currentUser.role === 'faculty' && activeTab === 'faculty_dashboard' && (
             <div className="space-y-8 animate-fadeIn">
               <div className="border-b border-[#1E2638] pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1401,7 +1363,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                 <div className="bg-[#0F1522] border border-[#1E2638] rounded-xl p-5 space-y-1 relative overflow-hidden group">
                   <div className="absolute inset-x-0 bottom-0 h-1 bg-emerald-500 shadow-[0_0_10px_#10B981]"></div>
                   <span className="text-[11px] font-mono text-zinc-500 uppercase flex items-center gap-1.5">
-                    <IndianRupee className="w-3 h-3 text-emerald-450" />
+                    <IndianRupee className="w-3 h-3 text-emerald-400" />
                     Gross Course Revenue
                   </span>
                   <p className="text-2xl font-bold font-mono text-emerald-400">₹{revenueINR.toLocaleString('en-IN')}</p>
@@ -1411,7 +1373,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                 <div className="bg-[#0F1522] border border-[#1E2638] rounded-xl p-5 space-y-1 relative overflow-hidden">
                   <div className="absolute inset-x-0 bottom-0 h-1 bg-cyan-500 shadow-[0_0_10px_#06B6D4]"></div>
                   <span className="text-[11px] font-mono text-zinc-500 uppercase flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-cyan-455" />
+                    <Users className="w-3.5 h-3.5 text-cyan-400" />
                     Enrolled Students
                   </span>
                   <p className="text-2xl font-bold font-mono text-zinc-100">{currentUser.activeEnrolledStudents.toLocaleString('en-IN')}</p>
@@ -1421,17 +1383,17 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                 <div className="bg-[#0F1522] border border-[#1E2638] rounded-xl p-5 space-y-1 relative overflow-hidden">
                   <div className="absolute inset-x-0 bottom-0 h-1 bg-amber-500 shadow-[0_0_10px_#F59E0B]"></div>
                   <span className="text-[11px] font-mono text-zinc-500 uppercase flex items-center gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-455" />
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
                     Pending Submissions
                   </span>
-                  <p className="text-2xl font-bold font-mono text-amber-450">{submissions.filter(s => s.status === 'Pending Review').length}</p>
+                  <p className="text-2xl font-bold font-mono text-amber-400">{submissions.filter(s => s.status === 'Pending Review').length}</p>
                   <p className="text-[10px] text-zinc-500">Requires code review</p>
                 </div>
 
                 <div className="bg-[#0F1522] border border-[#1E2638] rounded-xl p-5 space-y-1 relative overflow-hidden">
                   <div className="absolute inset-x-0 bottom-0 h-1 bg-indigo-500 shadow-[0_0_10px_#6366F1]"></div>
                   <span className="text-[11px] font-mono text-zinc-500 uppercase flex items-center gap-1.5">
-                    <Award className="w-3.5 h-3.5 text-indigo-455" />
+                    <Award className="w-3.5 h-3.5 text-indigo-400" />
                     Arena Pass Rate
                   </span>
                   <p className="text-2xl font-bold font-mono text-indigo-400">{testMetrics.passRate}% Pass</p>
@@ -1441,8 +1403,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
 
               {/* Analytics Section & Question Builder */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-                {/* Left Side: Performance Analytics Ledger */}
                 <div className="lg:col-span-7 space-y-6">
                   <div className="bg-[#0F1522] border border-[#1E2638] rounded-xl p-6 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1E2638] pb-3 gap-2">
@@ -1458,13 +1418,12 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       </span>
                     </div>
 
-                    {/* SVG Score distribution bar */}
                     <div className="bg-[#07090C] border border-[#1E2638] p-4 rounded-xl space-y-3">
                       <span className="text-[10px] font-mono uppercase text-zinc-400 block font-semibold">Test Score Distribution</span>
                       <div className="space-y-2 text-xs">
                         <div>
                           <div className="flex justify-between text-[11px] mb-1 font-mono">
-                            <span className="text-emerald-450">Excellence (90-100%)</span>
+                            <span className="text-emerald-400">Excellence (90-100%)</span>
                             <span>{testHistory.filter(h => h.score >= 90).length} students</span>
                           </div>
                           <div className="w-full bg-[#161F33] h-2 rounded-full overflow-hidden">
@@ -1477,7 +1436,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
 
                         <div>
                           <div className="flex justify-between text-[11px] mb-1 font-mono">
-                            <span className="text-indigo-455 text-indigo-400">Passing (70-89%)</span>
+                            <span className="text-indigo-400">Passing (70-89%)</span>
                             <span>{testHistory.filter(h => h.score >= 70 && h.score < 90).length} students</span>
                           </div>
                           <div className="w-full bg-[#161F33] h-2 rounded-full overflow-hidden">
@@ -1490,7 +1449,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
 
                         <div>
                           <div className="flex justify-between text-[11px] mb-1 font-mono">
-                            <span className="text-rose-455 text-rose-400">Needs Review (&lt; 70%)</span>
+                            <span className="text-rose-400">Needs Review (&lt; 70%)</span>
                             <span>{testHistory.filter(h => h.score < 70).length} students</span>
                           </div>
                           <div className="w-full bg-[#161F33] h-2 rounded-full overflow-hidden">
@@ -1521,14 +1480,14 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                               <td className="py-2.5 font-mono text-zinc-300">{history.score}%</td>
                               <td className="py-2.5">
                                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono uppercase ${history.passed
-                                  ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/40 shadow-[0_0_8px_rgba(16,185,129,0.15)]'
-                                  : 'bg-rose-950/60 text-rose-400 border border-rose-800/40 shadow-[0_0_8px_rgba(244,63,94,0.15)]'
+                                  ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/40'
+                                  : 'bg-rose-950/60 text-rose-400 border border-rose-800/40'
                                   }`}>
                                   {history.passed ? 'Pass' : 'Fail'}
                                 </span>
                               </td>
                               <td className="py-2.5 font-mono text-zinc-400">{history.timeTaken}</td>
-                              <td className="py-2.5 text-right font-mono text-zinc-550">{history.date}</td>
+                              <td className="py-2.5 text-right font-mono text-zinc-500">{history.date}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -1580,20 +1539,20 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
 
                     <form onSubmit={handleAddQuestion} className="space-y-3.5 text-xs">
                       <div>
-                        <label className="text-[10px] font-mono text-zinc-450 uppercase block mb-1">Question Content</label>
+                        <label className="text-[10px] font-mono text-zinc-400 uppercase block mb-1">Question Content</label>
                         <textarea
                           required
                           rows={2}
                           value={questionText}
                           onChange={(e) => setQuestionText(e.target.value)}
-                          placeholder="e.g. Which Hook should be used to optimize rendering performance by memoizing a computed value across renders?"
+                          placeholder="e.g. Which Hook should be used to optimize rendering performance?"
                           className="w-full bg-[#07090C] border border-[#1E2638] rounded-xl px-3 py-2 text-zinc-200 focus:outline-none focus:border-cyan-500 font-sans"
                         />
                       </div>
 
                       <div className="grid grid-cols-2 gap-2.5">
                         <div>
-                          <label className="text-[10px] font-mono text-zinc-450 uppercase block mb-1">Option A</label>
+                          <label className="text-[10px] font-mono text-zinc-400 uppercase block mb-1">Option A</label>
                           <input
                             type="text"
                             required
@@ -1604,7 +1563,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] font-mono text-zinc-455 uppercase block mb-1">Option B</label>
+                          <label className="text-[10px] font-mono text-zinc-400 uppercase block mb-1">Option B</label>
                           <input
                             type="text"
                             required
@@ -1615,7 +1574,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] font-mono text-zinc-455 uppercase block mb-1">Option C</label>
+                          <label className="text-[10px] font-mono text-zinc-400 uppercase block mb-1">Option C</label>
                           <input
                             type="text"
                             required
@@ -1626,7 +1585,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] font-mono text-zinc-455 uppercase block mb-1">Option D</label>
+                          <label className="text-[10px] font-mono text-zinc-400 uppercase block mb-1">Option D</label>
                           <input
                             type="text"
                             required
@@ -1640,7 +1599,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
 
                       <div className="grid grid-cols-2 gap-2.5">
                         <div>
-                          <label className="text-[10px] font-mono text-zinc-455 uppercase block mb-1">Correct Answer</label>
+                          <label className="text-[10px] font-mono text-zinc-400 uppercase block mb-1">Correct Answer</label>
                           <select
                             value={correctOpt}
                             onChange={(e) => setCorrectOpt(Number(e.target.value))}
@@ -1654,7 +1613,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                         </div>
 
                         <div>
-                          <label className="text-[10px] font-mono text-zinc-455 uppercase block mb-1">Category</label>
+                          <label className="text-[10px] font-mono text-zinc-400 uppercase block mb-1">Category</label>
                           <select
                             value={questionCategory}
                             onChange={(e) => setQuestionCategory(e.target.value)}
@@ -1668,7 +1627,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       </div>
 
                       <div>
-                        <label className="text-[10px] font-mono text-zinc-455 uppercase block mb-1">Detailed Explanation</label>
+                        <label className="text-[10px] font-mono text-zinc-400 uppercase block mb-1">Detailed Explanation</label>
                         <textarea
                           required
                           rows={2}
@@ -1706,7 +1665,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                             <button
                               onClick={() => handleDeleteQuestion(q.id)}
                               title="Delete Question"
-                              className="text-zinc-550 hover:text-rose-400 p-1 rounded transition"
+                              className="text-zinc-500 hover:text-rose-400 p-1 rounded transition"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -1716,7 +1675,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
           )}
@@ -1820,7 +1778,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
           )}
 
           {/* ========================================================================= */}
-          {/* SECTION B: STUDENT VIEWS (ONLY FOR STUDENT ROLE)                         */}
+          {/* SECTION B: STUDENT VIEWS (ONLY FOR STUDENT ROLE)                          */}
           {/* ========================================================================= */}
 
           {/* STUDENT VIEW 1: EXPLORE & ENROLL CATALOG */}
@@ -1852,13 +1810,13 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
               {/* Filter Toolbar */}
               <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
                 <div className="relative flex-1 max-w-sm">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-550" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
                   <input
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search courses, instructors, tech stack..."
-                    className="w-full bg-[#0F1522] border border-[#1E2638] rounded-lg pl-8 pr-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-550 focus:outline-none focus:border-indigo-500 transition"
+                    className="w-full bg-[#0F1522] border border-[#1E2638] rounded-lg pl-8 pr-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition"
                   />
                 </div>
 
@@ -1869,7 +1827,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       onClick={() => setSelectedCat(cat)}
                       className={`px-2.5 py-1 rounded text-xs transition font-medium ${selectedCat === cat
                         ? 'bg-indigo-600 text-white font-semibold shadow-md shadow-indigo-600/30'
-                        : 'bg-[#0F1522] text-zinc-400 hover:text-zinc-250 border border-[#1E2638]'
+                        : 'bg-[#0F1522] text-zinc-400 hover:text-zinc-200 border border-[#1E2638]'
                         }`}
                     >
                       {cat}
@@ -1930,13 +1888,13 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                           </p>
                         </div>
 
-                        <div className="flex items-center gap-4 text-xs font-mono text-zinc-550 pt-1">
+                        <div className="flex items-center gap-4 text-xs font-mono text-zinc-500 pt-1">
                           <span className="flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5 text-zinc-450" />
+                            <Clock className="w-3.5 h-3.5 text-zinc-400" />
                             {course.duration}
                           </span>
-                          <span className="flex items-center gap-1 text-amber-450">
-                            <Star className="w-3 h-3 fill-amber-450" />
+                          <span className="flex items-center gap-1 text-amber-400">
+                            <Star className="w-3 h-3 fill-amber-400" />
                             {course.rating}
                           </span>
                         </div>
@@ -2010,7 +1968,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                         : 'bg-[#161F33] hover:bg-[#1E2B47] text-zinc-300'
                         }`}
                     >
-                      {currentLesson.completed ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-450" /> : <Circle className="w-3.5 h-3.5" />}
+                      {currentLesson.completed ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Circle className="w-3.5 h-3.5" />}
                       <span>{currentLesson.completed ? 'Completed' : 'Mark Done'}</span>
                     </button>
 
@@ -2089,7 +2047,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                             setIsMuted(!isMuted);
                           }
                         }} className="hover:text-white">
-                          {isMuted ? <VolumeX className="w-3.5 h-3.5 text-rose-450" /> : <Volume2 className="w-3.5 h-3.5" />}
+                          {isMuted ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5" />}
                         </button>
                       </div>
                     </div>
@@ -2145,7 +2103,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                         />
 
                         {terminalOutput && (
-                          <div className="p-3 bg-black border border-[#1E2638] rounded-lg font-mono text-[11px] text-emerald-450 whitespace-pre-wrap">
+                          <div className="p-3 bg-black border border-[#1E2638] rounded-lg font-mono text-[11px] text-emerald-400 whitespace-pre-wrap">
                             <div className="text-zinc-500 pb-1 border-b border-zinc-900 mb-1">STDOUT Console Stream:</div>
                             {terminalOutput}
                           </div>
@@ -2314,7 +2272,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                                     className="text-zinc-600 hover:text-emerald-400 transition"
                                   >
                                     {lesson.completed ? (
-                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-450" />
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                                     ) : (
                                       <Circle className="w-3.5 h-3.5" />
                                     )}
@@ -2338,7 +2296,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
           {currentUser.role === 'student' && activeTab === 'arena' && (
             <div className="space-y-6 animate-fadeIn">
               <div className="border-b border-[#1E2638] pb-4">
-                <span className="text-[11px] font-mono uppercase tracking-widest text-rose-450 font-semibold">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-rose-400 font-semibold">
                   Exam Portal Console
                 </span>
                 <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-100 mt-1">
@@ -2351,12 +2309,9 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
 
               {!testStarted && !testSubmitted && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  {/* Test Intro Card */}
                   <div className="lg:col-span-8 bg-[#0F1522] border border-[#1E2638] rounded-2xl p-6 space-y-6 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
-
                     <div className="space-y-2">
-                      <div className="px-3 py-1 bg-rose-500/10 border border-rose-500/30 text-rose-450 text-xs rounded-full font-mono inline-flex items-center gap-1.5 shadow-[0_0_15px_rgba(244,63,94,0.1)]">
+                      <div className="px-3 py-1 bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs rounded-full font-mono inline-flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 animate-pulse" />
                         <span>10-Minute Technical Screening Test</span>
                       </div>
@@ -2374,7 +2329,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       </div>
                       <div className="p-4 bg-[#07090C] border border-[#1E2638] rounded-xl space-y-1">
                         <span className="text-zinc-500 block">PASS THRESHOLD</span>
-                        <span className="text-emerald-450 text-sm font-bold">70% Grade Minimum</span>
+                        <span className="text-emerald-400 text-sm font-bold">70% Grade Minimum</span>
                       </div>
                     </div>
 
@@ -2408,13 +2363,13 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                           <div key={hist.id || idx} className="p-3 bg-[#07090C] border border-[#1E2638] rounded-xl text-xs flex justify-between items-center gap-2">
                             <div>
                               <p className="font-mono text-zinc-300 font-bold">Attempt #{testHistory.length - idx}</p>
-                              <p className="text-[10px] text-zinc-550 font-mono mt-0.5">{hist.date} • {hist.timeTaken} taken</p>
+                              <p className="text-[10px] text-zinc-500 font-mono mt-0.5">{hist.date} • {hist.timeTaken} taken</p>
                               <p className="text-[9px] text-zinc-500 font-mono">Candidate: {hist.studentName}</p>
                             </div>
                             <div className="text-right">
                               <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold block text-center ${hist.passed
-                                ? 'bg-emerald-950/60 border border-emerald-800/40 text-emerald-450'
-                                : 'bg-rose-950/60 border border-rose-800/40 text-rose-450'
+                                ? 'bg-emerald-950/60 border border-emerald-800/40 text-emerald-400'
+                                : 'bg-rose-950/60 border border-rose-800/40 text-rose-400'
                                 }`}>
                                 {hist.score}%: {hist.passed ? 'PASS' : 'FAIL'}
                               </span>
@@ -2430,20 +2385,17 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
               {/* ACTIVE EXAMINATION CONSOLE MODE */}
               {testStarted && !testSubmitted && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-scaleUp">
-                  {/* Left Side: Question Pane */}
                   <div className="lg:col-span-8 bg-[#0F1522] border border-[#1E2638] rounded-2xl p-6 space-y-6">
-                    {/* Top Panel: Question Details & Time */}
                     <div className="flex justify-between items-center border-b border-[#1E2638]/60 pb-3">
                       <span className="text-xs text-zinc-300 font-mono">
                         Question <strong className="text-zinc-100">{currentQuestionIndex + 1}</strong> of {testQuestions.length}
                       </span>
 
-                      {/* Timer Display */}
                       <div className={`px-3.5 py-1.5 rounded-lg border font-mono text-xs font-bold flex items-center gap-1.5 transition-all ${timeLeft < 120
-                        ? 'bg-rose-950/60 border-rose-500 text-rose-450 animate-pulse shadow-[0_0_15px_rgba(244,63,94,0.2)]'
+                        ? 'bg-rose-950/60 border-rose-500 text-rose-400 animate-pulse'
                         : timeLeft < 300
-                          ? 'bg-amber-950/40 border-amber-500 text-amber-305 text-amber-300'
-                          : 'bg-emerald-950/40 border-emerald-600/40 text-emerald-450'
+                          ? 'bg-amber-950/40 border-amber-500 text-amber-300'
+                          : 'bg-emerald-950/40 border-emerald-600/40 text-emerald-400'
                         }`}>
                         <Clock className="w-3.5 h-3.5 animate-spin" />
                         <span>
@@ -2452,7 +2404,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       </div>
                     </div>
 
-                    {/* Question Content */}
                     <div className="space-y-4 animate-fadeIn">
                       <div className="flex items-start gap-2.5">
                         <span className="px-2 py-0.5 rounded text-[9px] font-mono uppercase bg-[#161F33] border border-[#2B3B60] text-indigo-300 font-semibold mt-1">
@@ -2463,7 +2414,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                         </h2>
                       </div>
 
-                      {/* Multiple Choice Options */}
                       <div className="grid grid-cols-1 gap-3.5 pt-2">
                         {testQuestions[currentQuestionIndex].options.map((opt, oIdx) => {
                           const isSelected = selectedAnswers[currentQuestionIndex] === oIdx;
@@ -2472,14 +2422,14 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                               key={oIdx}
                               onClick={() => handleSelectOption(oIdx)}
                               className={`w-full text-left p-4 rounded-xl border text-xs sm:text-sm transition-all duration-200 flex justify-between items-center group ${isSelected
-                                ? 'bg-indigo-950/40 border-indigo-500 text-indigo-200 shadow-[0_0_15px_rgba(99,102,241,0.15)]'
-                                : 'bg-[#07090C] border-[#1E2638] text-zinc-300 hover:border-zinc-755 hover:border-zinc-700 hover:bg-[#0c0f17]'
+                                ? 'bg-indigo-950/40 border-indigo-500 text-indigo-200'
+                                : 'bg-[#07090C] border-[#1E2638] text-zinc-300 hover:border-zinc-700 hover:bg-[#0c0f17]'
                                 }`}
                             >
                               <div className="flex items-center gap-3">
                                 <span className={`h-5 w-5 rounded-md border flex items-center justify-center text-[10px] font-bold font-mono transition ${isSelected
-                                  ? 'bg-indigo-650 border-indigo-500 text-white shadow-sm shadow-indigo-500/50'
-                                  : 'border-[#1E2638] text-zinc-500 group-hover:text-zinc-350'
+                                  ? 'bg-indigo-600 border-indigo-500 text-white'
+                                  : 'border-[#1E2638] text-zinc-500 group-hover:text-zinc-300'
                                   }`}>
                                   {['A', 'B', 'C', 'D'][oIdx]}
                                 </span>
@@ -2492,7 +2442,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       </div>
                     </div>
 
-                    {/* Footer buttons */}
                     <div className="flex items-center justify-between border-t border-[#1E2638]/60 pt-4">
                       <div className="flex items-center gap-2">
                         <button
@@ -2506,7 +2455,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                           onClick={handleFlagQuestion}
                           className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${flaggedQuestions[currentQuestionIndex]
                             ? 'bg-cyan-950/60 border border-cyan-800 text-cyan-300'
-                            : 'bg-[#161F33] hover:bg-[#1E2B47] text-zinc-350'
+                            : 'bg-[#161F33] hover:bg-[#1E2B47] text-zinc-300'
                             }`}
                         >
                           <Flag className="w-3.5 h-3.5 text-cyan-400" />
@@ -2524,7 +2473,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       ) : (
                         <button
                           onClick={() => handleTestSubmit(false)}
-                          className="px-4 py-2 bg-rose-650 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition shadow-lg shadow-rose-600/20"
+                          className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition shadow-lg shadow-rose-600/20"
                         >
                           Submit Assessment
                         </button>
@@ -2532,16 +2481,15 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                     </div>
                   </div>
 
-                  {/* Right Side: Palette Nav Grid */}
+                  {/* Navigation Palette */}
                   <div className="lg:col-span-4 bg-[#0F1522] border border-[#1E2638] rounded-2xl p-5 space-y-5">
                     <div>
                       <h3 className="text-xs font-semibold text-zinc-200 uppercase font-mono tracking-wider">
                         Navigation Palette
                       </h3>
-                      <p className="text-[10px] text-zinc-550 font-mono mt-0.5">Toggle and review question index tags.</p>
+                      <p className="text-[10px] text-zinc-500 font-mono mt-0.5">Toggle and review question index tags.</p>
                     </div>
 
-                    {/* Matrix Grid */}
                     <div className="grid grid-cols-5 gap-2.5">
                       {testQuestions.map((q, idx) => {
                         const isVisited = visitedQuestions[idx];
@@ -2552,11 +2500,11 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                         let styleClasses = "bg-[#07090C] border-[#1E2638] text-zinc-500 hover:text-zinc-200";
 
                         if (isFlagged) {
-                          styleClasses = "bg-[#1A1C29] border-cyan-500 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.15)]";
+                          styleClasses = "bg-[#1A1C29] border-cyan-500 text-cyan-300";
                         } else if (isAnswered) {
-                          styleClasses = "bg-emerald-950/45 border-emerald-500 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.15)] font-semibold";
+                          styleClasses = "bg-emerald-950/45 border-emerald-500 text-emerald-300 font-semibold";
                         } else if (isVisited) {
-                          styleClasses = "bg-amber-950/45 border-amber-500/80 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.15)]";
+                          styleClasses = "bg-amber-950/45 border-amber-500/80 text-amber-300";
                         }
 
                         if (isCurrent) {
@@ -2575,7 +2523,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       })}
                     </div>
 
-                    {/* Palette Legend */}
                     <div className="border-t border-[#1E2638]/60 pt-4 space-y-2 text-[10px] font-mono text-zinc-400">
                       <div className="flex items-center gap-2">
                         <span className="h-3 w-3 rounded bg-emerald-950/60 border border-emerald-500"></span>
@@ -2595,7 +2542,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       </div>
                     </div>
 
-                    {/* End session trigger */}
                     <button
                       onClick={() => {
                         if (window.confirm("Are you sure you want to exit? Unsaved answers will be lost.")) {
@@ -2614,17 +2560,15 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
               {/* SCORE REPORT CARD VIEW */}
               {testSubmitted && (
                 <div className="space-y-6 animate-scaleUp">
-                  {/* Performance Summary Banner */}
                   {(() => {
                     const latestReport = testHistory[0] || { score: 0, passed: false, timeTaken: '00:00' };
                     return (
                       <div className="bg-[#0F1522] border border-[#1E2638] rounded-2xl p-6 space-y-6 relative overflow-hidden">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-
                           <div className="space-y-3 flex-1">
                             <div className={`px-3 py-1 text-xs rounded-full font-mono font-bold inline-flex items-center gap-1.5 shadow ${latestReport.passed
-                              ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-450 shadow-emerald-500/10'
-                              : 'bg-rose-500/10 border border-rose-500/30 text-rose-450 shadow-rose-500/10'
+                              ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                              : 'bg-rose-500/10 border border-rose-500/30 text-rose-400'
                               }`}>
                               {latestReport.passed ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5 animate-pulse" />}
                               <span>{latestReport.passed ? 'ASSESSMENT PASSED' : 'MINIMUM GRADE REQUIREMENT UNMET'}</span>
@@ -2641,12 +2585,12 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                           <div className="flex items-center gap-6 shrink-0 bg-[#07090C] border border-[#1E2638] p-5 rounded-2xl text-center shadow-lg shadow-black/40">
                             <div>
                               <span className="text-[10px] font-mono text-zinc-500 block uppercase">Final Grade</span>
-                              <span className={`text-4xl font-extrabold font-mono ${latestReport.passed ? 'text-emerald-400' : 'text-rose-450'}`}>{latestReport.score}%</span>
+                              <span className={`text-4xl font-extrabold font-mono ${latestReport.passed ? 'text-emerald-400' : 'text-rose-400'}`}>{latestReport.score}%</span>
                             </div>
                             <div className="w-px h-10 bg-zinc-800"></div>
                             <div className="text-left font-mono text-xs">
                               <p className="text-zinc-400">Duration: <strong className="text-zinc-200">{latestReport.timeTaken}</strong></p>
-                              <p className="text-zinc-400 mt-1">Goal: <strong className="text-emerald-450">70% Pass</strong></p>
+                              <p className="text-zinc-400 mt-1">Goal: <strong className="text-emerald-400">70% Pass</strong></p>
                             </div>
                           </div>
                         </div>
@@ -2669,7 +2613,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                     );
                   })()}
 
-                  {/* Question Review ledger */}
                   <div className="space-y-4">
                     <h3 className="text-sm font-bold text-zinc-200 font-mono uppercase tracking-wider">
                       Question-by-Question Score Report Breakdown
@@ -2691,17 +2634,16 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                                   {q.category}
                                 </span>
                                 <span className={`px-2 py-0.5 rounded text-[9px] font-mono uppercase ${isCorrect
-                                  ? 'bg-emerald-950/40 border border-emerald-900/60 text-emerald-450'
-                                  : 'bg-rose-950/40 border border-rose-900/60 text-rose-455'
+                                  ? 'bg-emerald-950/40 border border-emerald-900/60 text-emerald-400'
+                                  : 'bg-rose-950/40 border border-rose-900/60 text-rose-400'
                                   }`}>
                                   {isCorrect ? 'Correct' : selectedOpt === undefined ? 'Skipped/Unanswered' : 'Incorrect'}
                                 </span>
                               </div>
                             </div>
 
-                            <p className="text-xs sm:text-sm font-semibold text-zinc-205 text-zinc-150">{q.question}</p>
+                            <p className="text-xs sm:text-sm font-semibold text-zinc-100">{q.question}</p>
 
-                            {/* Option verification details */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                               {q.options.map((opt, oIdx) => {
                                 const isCorrectOpt = oIdx === q.correct;
@@ -2711,11 +2653,11 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                                 let badge = null;
 
                                 if (isCorrectOpt) {
-                                  borderStyle = 'border-emerald-650 bg-emerald-950/20 text-emerald-305 font-medium';
+                                  borderStyle = 'border-emerald-600 bg-emerald-950/20 text-emerald-300 font-medium';
                                   badge = <span className="text-[9px] uppercase font-mono text-emerald-400">Correct Answer</span>;
                                 } else if (isSelectedOpt && !isCorrectOpt) {
                                   borderStyle = 'border-rose-700 bg-rose-950/20 text-rose-300';
-                                  badge = <span className="text-[9px] uppercase font-mono text-rose-450">Your Selection</span>;
+                                  badge = <span className="text-[9px] uppercase font-mono text-rose-400">Your Selection</span>;
                                 }
 
                                 return (
@@ -2727,7 +2669,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                               })}
                             </div>
 
-                            {/* Detailed Explanation */}
                             <div className="p-4 bg-[#07090C] border border-[#1E2638] rounded-xl space-y-1.5">
                               <span className="text-[10px] font-mono uppercase text-indigo-400 font-semibold block">Explanation Context</span>
                               <p className="text-xs text-zinc-400 leading-relaxed font-sans">{q.explanation}</p>
@@ -2742,7 +2683,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
             </div>
           )}
 
-          {/* STUDENT VIEW 4: STUDY MATRIX & CALENDAR */}
+          {/* STUDENT VIEW 4: STUDY MATRIX, CALENDAR & UNIVERSAL PDF DOWNLOADS */}
           {currentUser.role === 'student' && activeTab === 'matrix' && (
             <div className="space-y-6 animate-fadeIn">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -2766,12 +2707,9 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                 })}
               </div>
 
-              {/* Two Column Section: Checklist and Monthly Matrix side-by-side */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-                {/* Left Side: Daily Checklist & downloads */}
+                {/* Left Side: Daily Checklist & Downloadable PDF Warehouse */}
                 <div className="lg:col-span-5 space-y-6">
-
                   {/* Daily Study Checklist */}
                   <div className="bg-[#0F1522] border border-[#1E2638] rounded-xl p-5 space-y-4">
                     <div>
@@ -2782,11 +2720,10 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       <p className="text-[10px] text-zinc-500 font-mono mt-0.5">Toggle checklist items and monitor complete ratios.</p>
                     </div>
 
-                    {/* Progress Bar */}
                     <div className="space-y-1.5 pt-1">
                       <div className="flex justify-between text-[11px] font-mono text-zinc-500">
                         <span>Daily Completion Target</span>
-                        <span className="text-indigo-455 text-indigo-400 font-bold">{checklistProgress}%</span>
+                        <span className="text-indigo-400 font-bold">{checklistProgress}%</span>
                       </div>
                       <div className="w-full h-2 bg-zinc-900 rounded-full overflow-hidden">
                         <div
@@ -2796,7 +2733,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       </div>
                     </div>
 
-                    {/* Items List */}
                     <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
                       {checklist.map(item => (
                         <div key={item.id} className="flex items-center justify-between gap-2 p-2.5 bg-[#07090C] border border-[#1E2638]/80 rounded-lg hover:border-zinc-700 transition">
@@ -2804,9 +2740,9 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                             onClick={() => handleToggleChecklist(item.id)}
                             className="flex items-center gap-2.5 cursor-pointer flex-1"
                           >
-                            <button className="text-zinc-550 hover:text-indigo-400 transition shrink-0">
+                            <button className="text-zinc-500 hover:text-indigo-400 transition shrink-0">
                               {item.completed ? (
-                                <CheckCircle2 className="w-4 h-4 text-emerald-450" />
+                                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                               ) : (
                                 <Circle className="w-4 h-4" />
                               )}
@@ -2817,7 +2753,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                           </div>
                           <button
                             onClick={() => handleDeleteChecklistItem(item.id)}
-                            className="text-zinc-500 hover:text-rose-450 p-1 rounded transition"
+                            className="text-zinc-500 hover:text-rose-400 p-1 rounded transition"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -2825,7 +2761,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       ))}
                     </div>
 
-                    {/* Add Custom Checklist Item Form */}
                     <form onSubmit={handleAddChecklistItem} className="flex gap-2 text-xs">
                       <input
                         type="text"
@@ -2844,17 +2779,41 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                     </form>
                   </div>
 
-                  {/* Cheat Sheets & starter repos warehouse */}
+                  {/* Downloadable PDF & Cheat Sheets Warehouse */}
                   <div className="bg-[#0F1522] border border-[#1E2638] rounded-xl p-5 space-y-4 animate-fadeIn">
                     <div>
                       <h3 className="text-xs font-semibold text-zinc-100 uppercase font-mono tracking-wider flex items-center gap-1.5">
                         <Download className="w-4 h-4 text-cyan-400" />
-                        Downloadable Cheat Sheets
+                        Downloadable PDFs & Cheat Sheets
                       </h3>
-                      <p className="text-[10px] text-zinc-500 font-mono mt-0.5">Secure static reference assets for developer labs.</p>
+                      <p className="text-[10px] text-zinc-500 font-mono mt-0.5">Direct offline access on Mobile & Desktop devices.</p>
                     </div>
 
                     <div className="grid grid-cols-1 gap-2.5 text-xs">
+                      {/* UNIVERSAL MOBILE & DESKTOP ALL.PDF DOWNLOAD CARD */}
+                      <div className="p-3 bg-indigo-950/30 border border-indigo-500/40 rounded-lg flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5 overflow-hidden">
+                          <div className="p-2 rounded-lg bg-indigo-600/20 text-indigo-400 shrink-0">
+                            <FileText className="w-4 h-4" />
+                          </div>
+                          <div className="truncate">
+                            <p className="font-semibold text-zinc-100 truncate">ALL.pdf — Complete Course Handbook</p>
+                            <p className="text-[10px] text-indigo-300 font-mono">PDF Document • 111 KB • Universal Download</p>
+                          </div>
+                        </div>
+                        <a
+                          href="/ALL.pdf"
+                          download="NexusLearn_Complete_Study_Guide.pdf"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg transition flex items-center gap-1.5 shrink-0 shadow-sm"
+                          title="Download ALL.pdf on Mobile or PC"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>PDF</span>
+                        </a>
+                      </div>
+
                       <div className="p-3 bg-[#07090C] border border-[#1E2638] rounded-lg flex items-center justify-between gap-3">
                         <div>
                           <p className="font-semibold text-zinc-300">Next.js 14 Production Cheat Sheet</p>
@@ -2862,7 +2821,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                         </div>
                         <button
                           onClick={() => handleDownloadCheatsheet('nextjs')}
-                          className="p-2 bg-[#161F33] hover:bg-[#1E2B47] text-cyan-455 text-cyan-400 border border-[#2B3B60] rounded-lg transition"
+                          className="p-2 bg-[#161F33] hover:bg-[#1E2B47] text-cyan-400 border border-[#2B3B60] rounded-lg transition"
                           title="Download Text Cheat Sheet"
                         >
                           <Download className="w-4 h-4" />
@@ -2876,7 +2835,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                         </div>
                         <button
                           onClick={() => handleDownloadCheatsheet('pytorch')}
-                          className="p-2 bg-[#161F33] hover:bg-[#1E2B47] text-cyan-455 text-cyan-400 border border-[#2B3B60] rounded-lg transition"
+                          className="p-2 bg-[#161F33] hover:bg-[#1E2B47] text-cyan-400 border border-[#2B3B60] rounded-lg transition"
                           title="Download Text Cheat Sheet"
                         >
                           <Download className="w-4 h-4" />
@@ -2890,7 +2849,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                         </div>
                         <button
                           onClick={handleDownloadStarterRepo}
-                          className="p-2 bg-[#161F33] hover:bg-[#1E2B47] text-cyan-455 text-cyan-400 border border-[#2B3B60] rounded-lg transition"
+                          className="p-2 bg-[#161F33] hover:bg-[#1E2B47] text-cyan-400 border border-[#2B3B60] rounded-lg transition"
                           title="Download Starter Guide"
                         >
                           <Download className="w-4 h-4" />
@@ -2898,7 +2857,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       </div>
                     </div>
                   </div>
-
                 </div>
 
                 {/* Right Side: Monthly Calendar Matrix */}
@@ -2924,10 +2882,10 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       {Array.from({ length: 31 }).map((_, idx) => {
                         const dayNum = idx + 1;
                         const intensityTiers = [
-                          'bg-[#07090C] border-[#1E2638] text-zinc-650',
+                          'bg-[#07090C] border-[#1E2638] text-zinc-600',
                           'bg-indigo-950/40 border-indigo-900/40 text-indigo-300',
                           'bg-indigo-600/20 border-indigo-500/65 text-indigo-200 shadow-sm',
-                          'bg-emerald-500/20 border-emerald-500/70 text-emerald-250 shadow-md font-bold'
+                          'bg-emerald-500/20 border-emerald-500/70 text-emerald-200 shadow-md font-bold'
                         ];
                         const intensity = intensityTiers[(dayNum * 7) % 4];
 
@@ -2946,7 +2904,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
           )}
@@ -2967,9 +2924,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Left Side: Category filter, Search bar & List of doubts */}
                 <div className="lg:col-span-7 space-y-4">
-                  {/* Filters */}
                   <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
                     <div className="relative flex-1 max-w-sm">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
@@ -2978,7 +2933,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                         value={forumSearch}
                         onChange={(e) => setForumSearch(e.target.value)}
                         placeholder="Search queries, details..."
-                        className="w-full bg-[#0F1522] border border-[#1E2638] rounded-lg pl-8 pr-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-550 focus:outline-none focus:border-cyan-500 transition"
+                        className="w-full bg-[#0F1522] border border-[#1E2638] rounded-lg pl-8 pr-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-cyan-500 transition"
                       />
                     </div>
 
@@ -2998,7 +2953,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                     </div>
                   </div>
 
-                  {/* List of Doubts */}
                   <div className="space-y-4 animate-fadeIn">
                     {filteredDoubts.length === 0 ? (
                       <div className="p-8 text-center bg-[#0F1522] border border-[#1E2638] rounded-xl text-zinc-500 text-xs italic animate-pulse">
@@ -3008,9 +2962,9 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       filteredDoubts.map(post => {
                         const isExpanded = expandedPostId === post.id;
                         const catColors = {
-                          'React': 'bg-indigo-950/60 border border-indigo-700 text-indigo-300 shadow-[0_0_8px_rgba(99,102,241,0.1)]',
-                          'Python': 'bg-amber-950/60 border border-amber-700 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.1)]',
-                          'System Design': 'bg-cyan-950/60 border border-cyan-700 text-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.1)]'
+                          'React': 'bg-indigo-950/60 border border-indigo-700 text-indigo-300',
+                          'Python': 'bg-amber-950/60 border border-amber-700 text-amber-300',
+                          'System Design': 'bg-cyan-950/60 border border-cyan-700 text-cyan-300'
                         };
 
                         return (
@@ -3022,16 +2976,15 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                                 </span>
                                 <h3
                                   onClick={() => setExpandedPostId(isExpanded ? null : post.id)}
-                                  className="text-sm sm:text-base font-bold text-zinc-150 hover:text-cyan-400 transition cursor-pointer mt-1"
+                                  className="text-sm sm:text-base font-bold text-zinc-100 hover:text-cyan-400 transition cursor-pointer mt-1"
                                 >
                                   {post.title}
                                 </h3>
                               </div>
 
-                              {/* Upvotes */}
                               <button
                                 onClick={() => handleUpvoteForumPost(post.id)}
-                                className="px-2.5 py-1 bg-[#161F33] hover:bg-[#1E2B47] text-zinc-305 hover:text-cyan-400 border border-[#2B3B60] rounded-lg transition flex items-center gap-1 font-mono text-[11px]"
+                                className="px-2.5 py-1 bg-[#161F33] hover:bg-[#1E2B47] text-zinc-300 hover:text-cyan-400 border border-[#2B3B60] rounded-lg transition flex items-center gap-1 font-mono text-[11px]"
                               >
                                 <ThumbsUp className="w-3.5 h-3.5 text-cyan-400" />
                                 <span>{post.upvotes}</span>
@@ -3052,10 +3005,8 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                               </button>
                             </div>
 
-                            {/* Expanded replies panel */}
                             {isExpanded && (
                               <div className="mt-4 pt-4 border-t border-[#1E2638] space-y-4 animate-scaleUp">
-                                {/* Add Reply Form */}
                                 <form onSubmit={(e) => handleAddForumReply(e, post.id)} className="flex gap-2">
                                   <input
                                     type="text"
@@ -3073,10 +3024,9 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                                   </button>
                                 </form>
 
-                                {/* List Replies */}
                                 <div className="space-y-3 pt-1">
                                   {post.replies.length === 0 ? (
-                                    <p className="text-[11px] text-zinc-650 italic">No solution responses yet. Be the first to answer!</p>
+                                    <p className="text-[11px] text-zinc-500 italic">No solution responses yet. Be the first to answer!</p>
                                   ) : (
                                     post.replies.map(rep => (
                                       <div key={rep.id} className="p-3 bg-[#07090C] border border-[#1E2638] rounded-lg space-y-1">
@@ -3084,7 +3034,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                                           <span className="font-semibold text-zinc-300">{rep.author} ({rep.handle})</span>
                                           <span>{rep.time}</span>
                                         </div>
-                                        <p className="text-xs text-zinc-405 text-zinc-400 leading-relaxed font-sans">{rep.text}</p>
+                                        <p className="text-xs text-zinc-400 leading-relaxed font-sans">{rep.text}</p>
                                       </div>
                                     ))
                                   )}
@@ -3106,12 +3056,12 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                         <MessageSquare className="w-4 h-4 text-cyan-400" />
                         Create New Doubt Thread
                       </h3>
-                      <p className="text-[10px] text-zinc-550 font-mono mt-0.5">Publish your implementation problems.</p>
+                      <p className="text-[10px] text-zinc-500 font-mono mt-0.5">Publish your implementation problems.</p>
                     </div>
 
                     <form onSubmit={handleAddForumPost} className="space-y-3.5 text-xs">
                       <div>
-                        <label className="text-[10px] font-mono text-zinc-450 uppercase block mb-1">Query Category Tag</label>
+                        <label className="text-[10px] font-mono text-zinc-400 uppercase block mb-1">Query Category Tag</label>
                         <select
                           value={newQueryCategory}
                           onChange={(e) => setNewQueryCategory(e.target.value)}
@@ -3124,7 +3074,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       </div>
 
                       <div>
-                        <label className="text-[10px] font-mono text-zinc-450 uppercase block mb-1">Doubt Title</label>
+                        <label className="text-[10px] font-mono text-zinc-400 uppercase block mb-1">Doubt Title</label>
                         <input
                           type="text"
                           required
@@ -3136,7 +3086,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                       </div>
 
                       <div>
-                        <label className="text-[10px] font-mono text-zinc-455 uppercase block mb-1">Detailed Description</label>
+                        <label className="text-[10px] font-mono text-zinc-400 uppercase block mb-1">Detailed Description</label>
                         <textarea
                           required
                           rows={4}
@@ -3149,7 +3099,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
 
                       <button
                         type="submit"
-                        className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-550 text-white rounded-xl text-xs font-semibold transition mt-2 shadow-lg shadow-cyan-600/20"
+                        className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold transition mt-2 shadow-lg shadow-cyan-600/20"
                       >
                         Publish Thread to Community
                       </button>
@@ -3215,13 +3165,13 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
 
       {/* 3. UNIVERSAL FOOTER */}
       <footer className="border-t border-[#1E2638] bg-[#090D14] mt-12 py-6 animate-fadeIn">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-550 font-mono">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500 font-mono">
           <div className="flex items-center gap-2">
             <Terminal className="w-4 h-4 text-indigo-400" />
             <span>NexusLearn © 2026 • Authenticated as {currentUser.name} ({currentUser.role.toUpperCase()})</span>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={() => setActiveTab('about')} className="hover:text-zinc-350 transition">About System</button>
+            <button onClick={() => setActiveTab('about')} className="hover:text-zinc-300 transition">About System</button>
           </div>
         </div>
       </footer>
@@ -3232,7 +3182,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
           <div className="bg-[#0F1522] border border-[#2B3B60] rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scaleUp">
             <div className="flex items-center justify-between border-b border-[#1E2638] pb-3">
               <h3 className="text-sm font-bold text-zinc-100">Publish New Curriculum Sandbox</h3>
-              <button onClick={() => setShowCreateCourseModal(false)} className="text-zinc-550 hover:text-white">
+              <button onClick={() => setShowCreateCourseModal(false)} className="text-zinc-500 hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -3307,7 +3257,7 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                 <span className="text-[10px] font-mono uppercase text-indigo-400 font-semibold">Instant Checkout</span>
                 <h3 className="text-sm font-bold text-zinc-100">{checkoutCourse.title}</h3>
               </div>
-              <button onClick={() => setCheckoutCourse(null)} className="text-zinc-550 hover:text-white">
+              <button onClick={() => setCheckoutCourse(null)} className="text-zinc-500 hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -3317,15 +3267,15 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                 <div className="w-full h-full border-4 border-dashed border-zinc-900 flex flex-col items-center justify-center font-mono text-[10px] text-zinc-900 font-bold">
                   <span>SCAN WITH</span>
                   <span>GPay / PhonePe</span>
-                  <span className="mt-1 text-indigo-650">nexus@upi</span>
+                  <span className="mt-1 text-indigo-600">nexus@upi</span>
                 </div>
               </div>
               <p className="text-[11px] text-zinc-400">Scan QR using any UPI App or tap Pay to confirm.</p>
             </div>
 
-            <div className="flex justify-between text-zinc-100 font-bold border-t border-zinc-800 pt-2 font-mono text-xs font-mono">
+            <div className="flex justify-between text-zinc-100 font-bold border-t border-zinc-800 pt-2 font-mono text-xs">
               <span>Total Payable:</span>
-              <span className="text-emerald-450">₹{checkoutCourse.priceINR.toLocaleString('en-IN')}</span>
+              <span className="text-emerald-400">₹{checkoutCourse.priceINR.toLocaleString('en-IN')}</span>
             </div>
 
             <button
@@ -3335,7 +3285,6 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                   if (!enrolledIds.includes(checkoutCourse.id)) {
                     setEnrolledIds([...enrolledIds, checkoutCourse.id]);
                   }
-                  // Increment faculty gross revenue on successful purchase!
                   setRevenueINR(prev => prev + checkoutCourse.priceINR);
                   setSelectedCourseId(checkoutCourse.id);
                   setCheckoutCourse(null);
@@ -3367,9 +3316,9 @@ Vite developer setup: Run 'npm install' followed by 'npm run dev' to boot the sa
                 Conferred to <strong className="text-zinc-200 font-mono">{currentUser.name}</strong> for completing all interactive system architecture verifications.
               </p>
             </div>
-            <div className="p-3 bg-[#07090C] border border-[#1E2638] rounded-lg font-mono text-[11px] flex justify-between text-zinc-450">
+            <div className="p-3 bg-[#07090C] border border-[#1E2638] rounded-lg font-mono text-[11px] flex justify-between text-zinc-400">
               <span>HASH: 0x8F92...B41E</span>
-              <span className="text-emerald-450 font-bold">VERIFIED STATUS</span>
+              <span className="text-emerald-400 font-bold">VERIFIED STATUS</span>
             </div>
             <div className="flex gap-2">
               <button
